@@ -42,6 +42,7 @@
   .card label { display: block; margin: 10px 0; }
   .card input[type=range] { width: 100%; accent-color: var(--lit); }
   .hidden { display: none !important; }
+  body.cb { --danger: #FFFFFF; }
   #dawnBg { background: linear-gradient(#FFB347, #F2C14E 40%, #1B2350); }
 </style>
 <script type="importmap">
@@ -52,7 +53,7 @@
 <div id="hudRoot" class="hidden">
   <div id="flames" class="hud panel"></div>
   <div id="timer" class="hud panel">5:00</div>
-  <div id="topright" class="hud panel">Đèn: <b id="lit">0/5</b><br>Điểm: <b id="score">0</b></div>
+  <div id="topright" class="hud panel">Đèn: <b id="lit">0/5</b><br>Đom đóm: <b id="carry">0/10</b><br>Điểm: <b id="score">0</b></div>
   <div id="wind" class="hud"></div>
   <div id="hint" class="hud"></div>
   <div id="bar" class="hud"></div>
@@ -64,7 +65,7 @@
 
 <div id="menu" class="overlay"><div class="card">
   <h1>Đảo Đèn Lồng</h1>
-  <p>Sương đen đã nuốt hết ánh sáng của ba hòn đảo. Mây, người giữ đèn nhỏ tuổi, phải gom đom đóm để thắp lại các Đèn Lồng Lớn trước khi trời sáng.</p>
+  <p>Sương đen đã nuốt hết ánh sáng của ba hòn đảo. Mây, người giữ đèn nhỏ tuổi, phải gom đom đóm để thắp các Đèn Lồng Lớn và <b>giữ cho chúng còn dầu tới bình minh</b>. Bóng Mực sẽ tìm tới những ngọn đèn yếu để hút dầu.</p>
   <p><kbd>WASD</kbd> đi · <kbd>Space</kbd> nhảy · <kbd>Shift</kbd> lướt · <kbd>E</kbd> nạp đèn · <kbd>F</kbd> tỏa sáng · kéo chuột / <kbd>←</kbd><kbd>→</kbd> xoay camera · <kbd>Esc</kbd>/<kbd>P</kbd> tạm dừng</p>
   <button id="btnStart">Bắt đầu Đêm 1</button><button class="alt" id="btnSettings1">Cài đặt</button>
 </div></div>
@@ -86,6 +87,7 @@
   <h1>Cài đặt</h1>
   <label>Âm lượng: <b id="volVal"></b><input type="range" id="vol" min="0" max="100"></label>
   <label>Độ nhạy chuột: <b id="sensVal"></b><input type="range" id="sens" min="10" max="300"></label>
+  <label><input type="checkbox" id="cb"> Bảng màu dễ phân biệt (mù màu)</label>
   <button id="btnSettingsBack">Xong</button>
 </div></div>
 
