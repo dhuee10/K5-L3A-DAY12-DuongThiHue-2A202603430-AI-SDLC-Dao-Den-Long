@@ -31,7 +31,7 @@ function parseArgs(argv) {
     scenario: a.scenario, inputs: a.inputs, out: a.out,
   };
   if (!opts.out) fail('--out is required', 1);
-  if (opts.night !== 1) fail(`night ${opts.night} is not available (only night 1)`, 1);
+  if (![1, 2, 3].includes(opts.night)) fail(`night ${opts.night} is not available (1, 2 or 3)`, 1);
   if (opts.ticks < 0) fail('--ticks must be >= 0', 1);
   if (opts.snapshotEvery < 1) fail('--snapshot-every must be >= 1', 1);
   return opts;
@@ -43,6 +43,7 @@ function loadJson(path, what) {
   try { return JSON.parse(text.replace(/^﻿/, '')); } catch (e) { throw new InputError(`${what} is not valid JSON: ${e.message}`); }
 }
 
+const SHADE_STATES = ['spawning', 'wander', 'chase', 'recoil', 'stunned'];
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isVec3 = (v) => Array.isArray(v) && v.length === 3 && v.every(isNum);
@@ -58,7 +59,7 @@ export function validateInputs(doc) {
     last = f.tick;
     if ('move' in f) check(Array.isArray(f.move) && f.move.length === 2 && f.move.every((x) => isNum(x) && x >= -1 && x <= 1), `inputs: frame ${i} move must be [x,z] in [-1,1]`);
     if ('cam_yaw_deg' in f) check(isNum(f.cam_yaw_deg), `inputs: frame ${i} cam_yaw_deg must be a number`);
-    for (const b of ['jump', 'interact', 'pulse', 'dash']) if (b in f) check(typeof f[b] === 'boolean', `inputs: frame ${i} ${b} must be boolean`);
+    for (const b of ['jump', 'interact', 'pulse', 'dash', 'pause']) if (b in f) check(typeof f[b] === 'boolean', `inputs: frame ${i} ${b} must be boolean`);
   }
   return doc.frames;
 }
@@ -70,14 +71,17 @@ export function validateScenario(sc) {
     if ('pos' in sc.player) check(isVec3(sc.player.pos), 'scenario: player.pos must be [x,y,z]');
     if ('carried' in sc.player) check(Number.isInteger(sc.player.carried) && sc.player.carried >= 0, 'scenario: player.carried must be a non-negative integer');
     if ('flames' in sc.player) check(Number.isInteger(sc.player.flames) && sc.player.flames >= 0, 'scenario: player.flames must be a non-negative integer');
+    for (const k of ['invuln_ticks', 'dash_cd_ticks', 'pulse_cd_ticks', 'charm_ticks']) if (k in sc.player) check(Number.isInteger(sc.player[k]) && sc.player[k] >= 0, `scenario: player.${k} must be a non-negative integer`);
   }
-  for (const k of ['random_motes', 'random_shades']) if (k in sc) check(typeof sc[k] === 'boolean', `scenario: ${k} must be boolean`);
-  if ('motes' in sc) check(Array.isArray(sc.motes) && sc.motes.every(isVec3), 'scenario: motes must be an array of [x,y,z]');
+  for (const k of ['random_motes', 'random_shades', 'random_drifters', 'wind_enabled']) if (k in sc) check(typeof sc[k] === 'boolean', `scenario: ${k} must be boolean`);
+  if ('motes' in sc) check(Array.isArray(sc.motes) && sc.motes.every((m) => isVec3(m) || (isObj(m) && isVec3(m.pos) && (!('kind' in m) || ['random', 'dropped'].includes(m.kind)))), 'scenario: motes must be [x,y,z] or {pos,kind?,ttl_s?}');
   if ('shades' in sc) {
     check(Array.isArray(sc.shades), 'scenario: shades must be an array');
     for (const s of sc.shades) {
       check(isObj(s) && isVec3(s.pos), 'scenario: each shade needs pos [x,y,z]');
       if ('id' in s) check(typeof s.id === 'string' && s.id.length > 0, 'scenario: shade id must be a string');
+      if ('state' in s) check(SHADE_STATES.includes(s.state), `scenario: shade state must be one of ${SHADE_STATES.join(', ')}`);
+      if ('state_ticks_left' in s) check(Number.isInteger(s.state_ticks_left) && s.state_ticks_left >= 0, 'scenario: shade state_ticks_left must be a non-negative integer');
     }
   }
   if ('lanterns' in sc) {
@@ -89,16 +93,34 @@ export function validateScenario(sc) {
       if ('lit' in l) check(typeof l.lit === 'boolean', `scenario: lantern ${l.id} lit must be boolean`);
     }
   }
+  if ('drifters' in sc) {
+    check(Array.isArray(sc.drifters), 'scenario: drifters must be an array');
+    for (const d of sc.drifters) {
+      check(isObj(d) && isVec3(d.pos), 'scenario: each drifter needs pos [x,y,z]');
+      if ('id' in d) check(typeof d.id === 'string', 'scenario: drifter id must be a string');
+      if ('state' in d) check(['idle', 'chase', 'flee', 'removed'].includes(d.state), 'scenario: drifter state must be idle/chase/flee/removed');
+      if ('stolen' in d) check(Number.isInteger(d.stolen) && d.stolen >= 0, 'scenario: drifter stolen must be a non-negative integer');
+    }
+  }
+  if ('charms' in sc) {
+    check(Array.isArray(sc.charms), 'scenario: charms must be an array');
+    for (const c of sc.charms) {
+      check(isObj(c), 'scenario: each charm must be an object');
+      if ('pos' in c) check(isVec3(c.pos), 'scenario: charm pos must be [x,y,z]');
+      if ('available' in c) check(typeof c.available === 'boolean', 'scenario: charm available must be boolean');
+    }
+  }
   if ('time_left_s' in sc) check(isNum(sc.time_left_s) && sc.time_left_s > 0, 'scenario: time_left_s must be a positive number');
   return sc;
 }
 
-export function run({ seed, scenario, frames, ticks, snapshotEvery }) {
-  const g = createGame({ seed, scenario });
+export function run({ seed, night = 1, scenario, frames, ticks, snapshotEvery }) {
+  const g = createGame({ seed, night, scenario });
   const lines = [];
   const push = (o) => lines.push(JSON.stringify(o));
   push(snapshot(g));
-  const cur = { move: [0, 0], cam_yaw_deg: 0, jump: false, interact: false, pulse: false, dash: false };
+  push({ type: 'event', tick: 0, name: 'night_start', data: { night } });
+  const cur = { move: [0, 0], cam_yaw_deg: 0, jump: false, interact: false, pulse: false, dash: false, pause: false };
   let fi = 0;
   for (let k = 0; k < ticks && g.state === 'playing'; k++) {
     while (fi < frames.length && frames[fi].tick <= k) {
@@ -107,9 +129,9 @@ export function run({ seed, scenario, frames, ticks, snapshotEvery }) {
     }
     const events = step(g, cur);
     for (const e of events) push(e);
-    if (g.steps % snapshotEvery === 0) push(snapshot(g));
+    if (g.tick % snapshotEvery === 0) push(snapshot(g));
   }
-  push({ type: 'end', ticks: g.steps, state: g.state, score: g.score });
+  push({ type: 'end', ticks: g.tick, state: g.state, score: g.score });
   return lines.join('\n') + '\n';
 }
 
@@ -123,7 +145,7 @@ function main() {
     if (e instanceof InputError) fail(e.message, 2);
     throw e;
   }
-  const out = run({ seed: opts.seed, scenario, frames, ticks: opts.ticks, snapshotEvery: opts.snapshotEvery });
+  const out = run({ seed: opts.seed, night: opts.night, scenario, frames, ticks: opts.ticks, snapshotEvery: opts.snapshotEvery });
   try { writeFileSync(opts.out, out); } catch (e) { fail(`cannot write ${opts.out}: ${e.message}`, 1); }
 }
 
