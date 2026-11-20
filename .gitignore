@@ -3,3 +3,6 @@ node_modules/
 *.log
 out.jsonl
 .claude/settings.local.json
+data/
+bench.json
+soak.json
