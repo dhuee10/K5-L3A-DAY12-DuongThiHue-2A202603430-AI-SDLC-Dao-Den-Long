@@ -1,21 +1,18 @@
 ---
 name: verify
-description: Run and record evidence for Đảo Đèn Lồng (tests, headless scenarios, determinism, screenshots). Use after any gameplay or contract change, and before tagging a phase.
+description: Run and record evidence for Đảo Đèn Lồng (tests, headless scenarios, determinism, performance, real-browser flow, screenshots). Use after any gameplay or contract change, and before tagging a phase.
 ---
 
 # Verify the game and save evidence
 
-1. `npm test`: all must pass. If one fails, fix the code (or, if a requirement changed, update the scenario and write why in `docs/notes/`). Never loosen a check just to go green.
-2. `npm run proof`: regenerates `docs/proof/phase-<N>/` from the real CLI. Open `RESULTS.md` and confirm "ALL PASS". Do not edit those files by hand.
-3. New requirement? Add a scenario to `tests/scenarios.mjs` first (id `R<n>-name`, `req` = one-line requirement, `check` returns `[ok, message]` pairs), watch it fail, then implement.
-4. Visual check (things headless cannot prove: HUD, look, island brightening):
-   ```
-   PORT=8099 node tools/serve.mjs &
-   chrome --headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1280,720 \
-     --virtual-time-budget=6000 --screenshot=docs/proof/phase-1/shot-play.png "http://localhost:8099/?autostart"
-   ```
-   `?showcase` pre-lights two lanterns to show the brightening. Look at the PNG yourself before claiming it works.
-   Screenshots use virtual time and do NOT prove the game ticks. For behaviour in the real browser run
-   `node tools/browser-check.mjs <chrome-path>` (needs the server on 8099): it presses keys over CDP and must print `"result": "PASS"`.
-5. Mutation sanity check when adding tests: break the rule on purpose (e.g. disable the safe-zone clamp), run `npm test`, confirm the matching scenario fails, then restore.
-6. Update the evidence table in `docs/notes/phase-<N>.md` with requirement, method, link, result. Mark anything not met as "chưa đạt" with the reason.
+1. `npm test`: all must pass. If one fails, read the failing output first: decide whether the sim or the test is wrong (Phase 2 had both cases). Never loosen a check just to go green; if a requirement changed, update the scenario and log why in `docs/notes/phase-<N>.md`.
+2. `npm run proof`: regenerates `docs/proof/phase-<N>/` from the real CLI (set `OUT` in `tools/proof.mjs` for a new phase). Confirm "ALL PASS" in `RESULTS.md`, including the full-night timing (limit 30 s). Never edit those files by hand.
+3. New requirement? Add a scenario to `tests/scenarios.mjs` first (`R*` Phase 1, `P*` Phase 2, `night:` for nights 2/3; `check` returns `[ok, message]` pairs; `every` must divide every tick you read). Watch it fail, then implement.
+4. Mutation sanity check: break the rule on purpose (e.g. `sed` it out), run `npm test`, confirm the matching scenario fails, restore from a backup copy.
+5. Real browser (things headless cannot prove: menus, pause, settings, FPS):
+   - Check port 8099 is free first (`curl -s localhost:8099` should fail); a leftover server from an earlier session will otherwise answer.
+   - `PORT=8099 node tools/serve.mjs` (background), then `node tools/browser-check.mjs "<chrome path>" http://localhost:8099 --gpu > docs/proof/phase-<N>/browser-check.json`. It must say `"result": "PASS"`. Record CPU/GPU with the FPS numbers.
+6. Screenshots (look at them yourself before claiming anything):
+   `chrome --headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1280,720 --virtual-time-budget=6000 --screenshot=<png> "http://localhost:8099/?showcase&night=N"`.
+   Screenshots use virtual time, so they never prove that the game ticks; use step 5 for that.
+7. Update the evidence table in `docs/notes/phase-<N>.md`: requirement, method, link, result. Anything without real proof is "chưa đạt" or "by inspection only".

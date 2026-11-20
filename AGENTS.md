@@ -1,23 +1,26 @@
 # AGENTS.md: Đảo Đèn Lồng
 
-Read `docs/notes/PRD-0.md` (condensed requirements + Test Contract) before changing gameplay. Assumptions and numbers: `docs/notes/phase-1.md`.
+Current phase: **2** (Contract v1.1). Read `docs/notes/TICKET-02.md` (standard numbers, maps, tick order, contract) before changing gameplay. History: `docs/notes/PRD-0.md`. Assumptions: `docs/notes/phase-2.md`.
 
 ## Commands
 - Test: `npm test` (node:test, no deps). Must be green before you finish; a Stop hook enforces this.
-- Evidence: `npm run proof` (runs every scenario through the real CLI, writes `docs/proof/phase-1/`).
-- Headless: `node src/headless.mjs --seed 1 --night 1 --ticks 600 --out out.jsonl [--scenario s.json] [--inputs i.json] [--snapshot-every 10]`
-- Game: `npm start`, open http://localhost:8080
+- Evidence: `npm run proof` (every scenario through the real CLI → `docs/proof/phase-2/`).
+- Browser check: `PORT=8099 node tools/serve.mjs` then `node tools/browser-check.mjs <chrome> http://localhost:8099 --gpu` (flow, pause, settings, FPS).
+- Headless: `node src/headless.mjs --seed 1 --night 1|2|3 --ticks 600 --out out.jsonl [--scenario s.json] [--inputs i.json] [--snapshot-every 10]`
+- Game: `npm start`, open http://localhost:8080 (`?autostart&night=3` skips menus).
 
 ## Architecture
-- `src/sim.mjs`: ALL gameplay rules. Pure + deterministic: no `Math.random`, no `Date`, no DOM. Seeded RNG `makeRng` only.
-- `src/headless.mjs`: CLI, input/scenario validation (malformed = exit 2), JSONL writer.
-- `src/game.js` + `index.html`: three.js renderer, sound, keyboard. Never put rules here; visual extras must not touch sim state.
-- `tests/scenarios.mjs`: one acceptance scenario per requirement, shared by tests and proof.
+- `src/sim.mjs`: ALL rules. `step()` follows the 12 numbered stages of the TICKET-02 tick order; keep new logic in the right stage. Pure + deterministic: seeded `makeRng` only, no `Math.random`/`Date`/DOM.
+- `src/maps.mjs`: standard map data + `groundAt()`/`insideTower()`. Never invent coordinates; copy them from TICKET-02.
+- `src/headless.mjs`: CLI + validation (malformed file = exit 2).
+- `src/game.js` + `index.html`: rendering, menus, HUD, audio. Never put rules here; visual extras must not touch sim state.
+- `tests/scenarios.mjs`: one scenario per requirement (R* = Phase 1, P* = Phase 2), shared by tests and proof.
 
 ## Rules
-- `TUNING` in sim.mjs and `game.contract.json` must stay identical (a test checks it). Change both or neither.
-- Tick model: step k reads input of tick k, events get `tick = k+1`. Do not change event names/fields from the contract.
-- Distances are horizontal XZ, `<=` means "within".
-- Never hand-edit files in `docs/proof/`; regenerate with `npm run proof`.
-- Do not weaken a test to make it pass. If a requirement changes, edit the test and note why in `docs/notes/`.
-- Keep commits small, one concern each.
+- Standard numbers are fixed by the client: `TUNING`/`RULES` must match TICKET-02, and `game.contract.json` must equal `TUNING` (tested).
+- Shade states are exactly `spawning, wander, chase, recoil, stunned`. Event names/fields exactly as in the contract.
+- `tick` always advances; `sim_tick` freezes while paused. Events use `tick`.
+- Distances are XZ unless the ticket says 3D (pulse). "Within" means `<=`.
+- Never hand-edit `docs/proof/`; regenerate. Never weaken a test to pass; if a requirement changes, edit the test and log why in `docs/notes/phase-N.md`.
+- When a test reads `snap(L, t)`, make sure `every` divides `t`.
+- Small commits, one concern each.
