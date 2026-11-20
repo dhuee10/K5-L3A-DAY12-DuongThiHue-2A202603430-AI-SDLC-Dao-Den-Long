@@ -1,0 +1,111 @@
+{
+ "fps": {
+  "renderer": "GPU (ANGLE default)",
+  "avg": 60,
+  "samples": [
+   60,
+   60,
+   60,
+   60,
+   60,
+   60,
+   60
+  ]
+ },
+ "checks": [
+  {
+   "name": "W moves Mây forward (~6 m/s)",
+   "pass": true,
+   "detail": {
+    "moved": 9
+   }
+  },
+  {
+   "name": "Esc pauses: sim frozen + menu shown",
+   "pass": true,
+   "detail": {
+    "s1": 212,
+    "s2": 212
+   }
+  },
+  {
+   "name": "P resumes",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Settings (volume, mouse sensitivity) saved between sessions",
+   "pass": true,
+   "detail": {
+    "saved": [
+     "33",
+     "150"
+    ]
+   }
+  },
+  {
+   "name": "Menu -> Night 1 intro with Ông Đăng",
+   "pass": true,
+   "detail": {
+    "name": "Đảo Bến"
+   }
+  },
+  {
+   "name": "Night 1 starts",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 1 win -> result -> next",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 2 starts",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 2 win -> result -> next",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 3 starts",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 3 win -> Bình Minh screen with total score",
+   "pass": true,
+   "detail": {
+    "total": "3024"
+   }
+  },
+  {
+   "name": "Lose -> replay the same night",
+   "pass": true,
+   "detail": {
+    "btn": "Chơi lại Đêm 2"
+   }
+  },
+  {
+   "name": "Average FPS >= 30 at 1280x720 (Night 3)",
+   "pass": true,
+   "detail": {
+    "renderer": "GPU (ANGLE default)",
+    "avg": 60,
+    "samples": [
+     60,
+     60,
+     60,
+     60,
+     60,
+     60,
+     60
+    ]
+   }
+  }
+ ],
+ "result": "PASS"
+}
