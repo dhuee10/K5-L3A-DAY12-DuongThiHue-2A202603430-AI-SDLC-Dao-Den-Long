@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 5 --out docs\proof\phase-4\scenarios\Q3-refuel-partial-carry\output.jsonl --snapshot-every 5 --scenario docs\proof\phase-4\scenarios\Q3-refuel-partial-carry\scenario.json --inputs docs\proof\phase-4\scenarios\Q3-refuel-partial-carry\inputs.json

@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 400 --out docs\proof\phase-4\scenarios\Q6-shade-drains-weak-lantern\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-4\scenarios\Q6-shade-drains-weak-lantern\scenario.json

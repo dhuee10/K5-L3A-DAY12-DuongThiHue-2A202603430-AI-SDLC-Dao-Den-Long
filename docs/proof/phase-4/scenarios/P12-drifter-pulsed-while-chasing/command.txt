@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 2 --ticks 60 --out docs\proof\phase-4\scenarios\P12-drifter-pulsed-while-chasing\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-4\scenarios\P12-drifter-pulsed-while-chasing\scenario.json --inputs docs\proof\phase-4\scenarios\P12-drifter-pulsed-while-chasing\inputs.json

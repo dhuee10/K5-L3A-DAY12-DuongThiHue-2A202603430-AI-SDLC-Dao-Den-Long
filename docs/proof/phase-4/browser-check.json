@@ -1,0 +1,207 @@
+{
+ "fps": {
+  "renderer": "GPU (ANGLE default)",
+  "avg": 60,
+  "samples": [
+   60,
+   60,
+   60,
+   60,
+   60,
+   60,
+   60
+  ]
+ },
+ "checks": [
+  {
+   "name": "W moves Mây forward (~6 m/s)",
+   "pass": true,
+   "detail": {
+    "moved": 9.1
+   }
+  },
+  {
+   "name": "Esc pauses: sim frozen + menu shown",
+   "pass": true,
+   "detail": {
+    "s1": 213,
+    "s2": 213
+   }
+  },
+  {
+   "name": "Pause key again resumes",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Settings (volume, mouse sensitivity) saved between sessions",
+   "pass": true,
+   "detail": {
+    "saved": [
+     "33",
+     "150"
+    ]
+   }
+  },
+  {
+   "name": "Colour-blind palette setting saved and applied",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Menu -> Night 1 intro with Ông Đăng",
+   "pass": true,
+   "detail": {
+    "name": "Đảo Bến"
+   }
+  },
+  {
+   "name": "Night 1 starts",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 1 win -> result -> next",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 2 starts",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 2 win -> result -> next",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 3 starts",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Night 3 win -> Bình Minh screen with total score",
+   "pass": true,
+   "detail": {
+    "total": "3132"
+   }
+  },
+  {
+   "name": "Bình Minh: name entry rejects \"ab\", saves \"Mây_Đêm3\" to the board",
+   "pass": true,
+   "detail": {
+    "badMsg": "⚠ Tên cần 3–12 ký tự: chữ (có dấu được), số hoặc _",
+    "goodMsg": "Đã lưu! Hạng #1 trên bảng xếp hạng."
+   }
+  },
+  {
+   "name": "After a loss: name entry saves to the board",
+   "pass": true,
+   "detail": {
+    "loseMsg": "Đã lưu! Hạng #2 trên bảng xếp hạng."
+   }
+  },
+  {
+   "name": "Lose -> replay the same night",
+   "pass": true,
+   "detail": {
+    "btn": "Chơi lại Đêm 2"
+   }
+  },
+  {
+   "name": "Leaderboard screen from menu: entries in score order, stored on disk",
+   "pass": true,
+   "detail": {
+    "rows": [
+     [
+      "1",
+      "Mây_Đêm3",
+      "3132",
+      "3/3",
+      "16:45:59 20/11/2026"
+     ],
+     [
+      "2",
+      "Tester_1",
+      "0",
+      "0/3",
+      "16:46:04 20/11/2026"
+     ]
+    ],
+    "note": "Lưu trên đĩa: data/leaderboard.json"
+   }
+  },
+  {
+   "name": "Remap jump to F (already pulse): duplicate reported and highlighted",
+   "pass": true,
+   "detail": {
+    "dupMsg": "⚠ Trùng phím: F đang dùng cho Nhảy và Tỏa sáng",
+    "dupBtns": 2
+   }
+  },
+  {
+   "name": "Remapped key is saved and works in play (J jumps)",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Restore defaults",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "Captions: \"Bóng Mực xuất hiện\" and low-fuel lantern",
+   "pass": true,
+   "detail": {
+    "caps": [
+     "Bóng Mực xuất hiện!",
+     "Bóng Mực xuất hiện!",
+     "⚠ Đèn L1 sắp cạn dầu (29)"
+    ]
+   }
+  },
+  {
+   "name": "Caption for the last 10 seconds",
+   "pass": true,
+   "detail": {}
+  },
+  {
+   "name": "All visible UI text >= 18 px (play HUD, menu, settings); large text = x1.25",
+   "pass": true,
+   "detail": {
+    "fPlay": 18,
+    "fMenu": 18,
+    "fSettings": 18,
+    "fBig": 22.5,
+    "rootBig": "22.5px"
+   }
+  },
+  {
+   "name": "Reduced motion: a hit gives no screen flash and no camera shake",
+   "pass": true,
+   "detail": {
+    "flashT": 0,
+    "shakeT": 0
+   }
+  },
+  {
+   "name": "Average FPS >= 30 at 1280x720 (Night 3)",
+   "pass": true,
+   "detail": {
+    "renderer": "GPU (ANGLE default)",
+    "avg": 60,
+    "samples": [
+     60,
+     60,
+     60,
+     60,
+     60,
+     60,
+     60
+    ]
+   }
+  }
+ ],
+ "result": "PASS"
+}

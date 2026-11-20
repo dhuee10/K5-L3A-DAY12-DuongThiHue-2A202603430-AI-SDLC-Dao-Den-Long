@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 2 --out docs\proof\phase-4\scenarios\Q8b-drain-to-chase\output.jsonl --snapshot-every 1 --scenario docs\proof\phase-4\scenarios\Q8b-drain-to-chase\scenario.json

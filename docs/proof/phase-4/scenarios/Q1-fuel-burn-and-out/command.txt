@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 70 --out docs\proof\phase-4\scenarios\Q1-fuel-burn-and-out\output.jsonl --snapshot-every 1 --scenario docs\proof\phase-4\scenarios\Q1-fuel-burn-and-out\scenario.json
