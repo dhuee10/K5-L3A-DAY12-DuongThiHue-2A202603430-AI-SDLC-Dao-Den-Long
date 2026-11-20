@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 60 --out docs\proof\phase-3\scenarios\P10-safe-zone-evict\output.jsonl --snapshot-every 1 --scenario docs\proof\phase-3\scenarios\P10-safe-zone-evict\scenario.json --inputs docs\proof\phase-3\scenarios\P10-safe-zone-evict\inputs.json

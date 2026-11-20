@@ -1,0 +1,39 @@
+{
+  "random_motes": false,
+  "random_shades": false,
+  "random_drifters": false,
+  "wind_enabled": false,
+  "motes": [],
+  "shades": [
+    {
+      "id": "S1",
+      "pos": [
+        0.3,
+        1,
+        0
+      ],
+      "state": "chase"
+    }
+  ],
+  "drifters": [],
+  "charms": [],
+  "time_left_s": 1,
+  "player": {
+    "flames": 1,
+    "invuln_ticks": 60
+  },
+  "lanterns": [
+    {
+      "id": "L1",
+      "lit": true
+    },
+    {
+      "id": "L2",
+      "lit": true
+    },
+    {
+      "id": "L3",
+      "lit": true
+    }
+  ]
+}

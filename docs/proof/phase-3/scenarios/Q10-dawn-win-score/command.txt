@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 100 --out docs\proof\phase-3\scenarios\Q10-dawn-win-score\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-3\scenarios\Q10-dawn-win-score\scenario.json

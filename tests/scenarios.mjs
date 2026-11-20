@@ -66,16 +66,13 @@ export const SCENARIOS = [
     scenario: { ...off, player: { carried: 2 }, lanterns: [{ id: 'L1', pos: [0, 0, 2] }, { id: 'L2', pos: [0, 0, -2.1] }] },
     inputs: { frames: [{ tick: 0, interact: true }, { tick: 1, interact: false }] }, ticks: 5, every: 5,
     check: (L) => [[ev(L, 'deposit').length === 1 && ev(L, 'deposit')[0].data.deposited === 2 && ev(L, 'deposit')[0].data.lantern_id === 'L1', 'one partial deposit into L1'],
-      [ev(L, 'lantern_lit').length === 0 && snap(L, 5).score === 20, 'not lit, +20']],
+      [ev(L, 'lantern_lit').length === 0 && snap(L, 5).score === 2 * S.per_mote, 'not lit, +5 per mote']],
   },
   {
-    id: 'R8-win-all-lit', req: 'Lighting the last lantern wins with floor(seconds left)*2 + 50 per flame; pre-lit lanterns give nothing',
+    id: 'R8-no-early-win', req: '[changed P3] Lighting the last lantern no longer ends the night; pre-lit lanterns give no events/score',
     scenario: { ...off, player: { carried: 10 }, lanterns: allLitBut('L5', [0, 0, 1]) }, inputs: { frames: [{ tick: 0, interact: true }] }, ticks: 100,
-    check: (L) => {
-      const expected = 100 + 100 + Math.floor(300 - 1 / 60) * 2 + 3 * 50;
-      const go = ev(L, 'game_over')[0];
-      return [[go?.tick === 1 && go.data.result === 'won' && go.data.reason === 'all_lit', JSON.stringify(go)], [end(L).score === expected && end(L).ticks === 1, `end ${JSON.stringify(end(L))}, expected ${expected}`]];
-    },
+    check: (L) => [[ev(L, 'game_over').length === 0 && end(L).state === 'playing' && end(L).ticks === 100, JSON.stringify(end(L))],
+      [ev(L, 'lantern_lit').length === 1 && ev(L, 'lantern_lit')[0].data.relight === false && end(L).score === 10 * S.per_mote + S.per_lantern, `score ${end(L).score}`]],
   },
   {
     id: 'R9-pulse', req: 'Pulse: cost 3, 3D radius 5 from feet+0.8, stun, 4 m push over 15 ticks, +5 per shade, cooldown 3 s',
@@ -255,12 +252,15 @@ export const SCENARIOS = [
     scenario: { ...off }, inputs: { frames: [{ tick: 0, move: [0, 1] }, { tick: 10, pause: true }, { tick: 11, pause: false }, { tick: 40, pause: true }] }, ticks: 60,
     check: (L) => [[ev(L, 'paused')[0]?.tick === 11 && ev(L, 'resumed')[0]?.tick === 41, `${JSON.stringify(ev(L, 'paused'))} ${JSON.stringify(ev(L, 'resumed'))}`],
       [snap(L, 20).state === 'paused' && snap(L, 20).sim_tick === 10 && snap(L, 30).player.pos[2] === snap(L, 20).player.pos[2], JSON.stringify(snap(L, 20).player)],
-      [snap(L, 60).sim_tick === 30 && near(snap(L, 60).time_left_s, 300 - 0.5) && near(snap(L, 60).player.pos[2], 3), `end ${JSON.stringify(snap(L, 60).player.pos)}`]],
+      [snap(L, 60).sim_tick === 30 && near(snap(L, 60).time_left_s, T.night1_duration_s - 0.5) && near(snap(L, 60).player.pos[2], 3), `end ${JSON.stringify(snap(L, 60).player.pos)}`]],
   },
   {
-    id: 'P15-win-on-last-tick', req: 'All lit on the very tick time runs out counts as a win',
-    scenario: { ...off, time_left_s: 1, player: { carried: 10 }, lanterns: allLitBut('L5', [0, 0, 1]) }, inputs: { frames: [{ tick: 59, interact: true }] }, ticks: 100,
-    check: (L) => [[ev(L, 'game_over')[0]?.data.result === 'won' && ev(L, 'game_over')[0].tick === 60 && end(L).score === 100 + 100 + 0 + 150, JSON.stringify(end(L))]],
+    id: 'P15-light-on-dawn-tick-counts', req: '[changed P3] A lantern lit on the dawn tick counts toward the 3/5 threshold',
+    scenario: { ...off, time_left_s: 1, player: { carried: 10 }, lanterns: [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L5', pos: [0, 0, 1] }] }, inputs: { frames: [{ tick: 59, interact: true }] }, ticks: 100,
+    check: (L) => {
+      const expected = 10 * S.per_mote + S.per_lantern + 2 * (50 + 99) + (50 + 100) + 3 * 50;
+      return [[ev(L, 'game_over')[0]?.data.reason === 'dawn_survived' && ev(L, 'game_over')[0].tick === 60 && end(L).score === expected, `${JSON.stringify(end(L))} expected ${expected}`]];
+    },
   },
   {
     id: 'P16-interact-tie-and-one-hit-per-tick', req: 'Equal distance -> smaller id; two touching shades cost only one flame per tick',
@@ -284,17 +284,117 @@ export const SCENARIOS = [
     night: 3, scenario: { ...off, shades: [{ id: 'S1', pos: [0, 1, -20] }] }, ticks: 60, every: 60,
     check: (L) => {
       const s0 = snap(L, 0), first = L.find((l) => l.type === 'event' && l.name === 'night_start');
-      return [[s0.night === 3 && s0.lanterns.length === 7 && s0.lanterns[0].pos.join() === '0,6,6' && s0.time_left_s === 360, 'night 3 setup'], [first?.data.night === 3, 'night_start'],
+      return [[s0.night === 3 && s0.lanterns.length === 7 && s0.lanterns[0].pos.join() === '0,6,6' && s0.time_left_s === T.night3_duration_s, 'night 3 setup'], [first?.data.night === 3, 'night_start'],
         [near(hd(snap(L, 60).shades[0].pos, [0, 0, -20]), 4.5, 0.01), `shade moved ${hd(snap(L, 60).shades[0].pos, [0, 0, -20])} m in 1 s`]];
     },
   },
   {
-    id: 'P19-night2-drifter-spawn', req: 'Night 2 default: 6 lanterns, 330 s, charm C1 at (35,0,0), Gió Lạc D1 spawns at tick 1200 (idle)',
+    id: 'P19-night2-drifter-spawn', req: 'Night 2 default: 6 lanterns, 270 s, charm C1 at (35,0,0), Gió Lạc D1 spawns at tick 1200 (idle)',
     night: 2, scenario: { player: { pos: [0, 0, 20] }, lanterns: [{ id: 'L1', lit: true }] }, ticks: 1210, every: 10,
     check: (L) => {
       const s0 = snap(L, 0), s = snap(L, 1200);
-      return [[s0.lanterns.length === 6 && s0.time_left_s === 330 && s0.charms[0].pos.join() === '35,0,0' && s0.drifters.length === 0, 'night 2 setup'],
+      return [[s0.lanterns.length === 6 && s0.time_left_s === T.night2_duration_s && s0.charms[0].pos.join() === '35,0,0' && s0.drifters.length === 0, 'night 2 setup'],
         [snap(L, 1190).drifters.length === 0 && s.drifters.length === 1 && s.drifters[0].id === 'D1' && s.drifters[0].state === 'idle', JSON.stringify(s.drifters)]];
     },
+  },
+  // ---------------- Phase 3 (TICKET-03 "Đèn cạn dầu")
+  {
+    id: 'Q1-fuel-burn-and-out', req: 'Lit lantern burns 1 fuel/s; at 0 it goes out (lantern_out), deposited 0, ever_lit kept; fuel reported with 1 decimal',
+    scenario: { ...off, lanterns: [{ id: 'L1', lit: true, fuel: 1, deposited: 10 }] }, ticks: 70, every: 1,
+    check: (L) => [[snap(L, 0).lanterns[0].fuel === 1 && snap(L, 30).lanterns[0].fuel === 0.5, `fuel ${snap(L, 30).lanterns[0].fuel}`],
+      [ev(L, 'lantern_out')[0]?.tick === 60 && ev(L, 'lantern_out')[0].data.lantern_id === 'L1', JSON.stringify(ev(L, 'lantern_out'))],
+      [(({ lit, fuel, deposited, ever_lit }) => !lit && fuel === 0 && deposited === 0 && ever_lit)(snap(L, 61).lanterns[0]), JSON.stringify(snap(L, 61).lanterns[0])]],
+  },
+  {
+    id: 'Q2-refuel', req: 'Interact at a lit lantern: used = min(carried, ceil((100-fuel)/10)), fuel += 10*used (max 100), +5 per mote, refuel event',
+    scenario: { ...off, player: { carried: 10 }, lanterns: [{ id: 'L1', pos: [0, 0, 1], lit: true, fuel: 50 }] }, inputs: { frames: [{ tick: 0, interact: true }] }, ticks: 5, every: 5,
+    check: (L) => {
+      const r = ev(L, 'refuel')[0];
+      return [[r && r.data.lantern_id === 'L1' && r.data.amount === 6 && r.data.fuel === 100, `${JSON.stringify(r)} (fuel 49.98 after burn -> 6 motes)`],
+        [snap(L, 5).player.carried === 4 && snap(L, 5).score === 6 * S.per_mote && ev(L, 'deposit').length === 0, 'carried 4, +30']];
+    },
+  },
+  {
+    id: 'Q3-refuel-partial-carry', req: 'Refuel with fewer motes than needed uses all carried',
+    scenario: { ...off, player: { carried: 2 }, lanterns: [{ id: 'L1', pos: [0, 0, 1], lit: true, fuel: 20 }] }, inputs: { frames: [{ tick: 0, interact: true }] }, ticks: 5, every: 5,
+    check: (L) => [[ev(L, 'refuel')[0]?.data.amount === 2 && Math.abs(ev(L, 'refuel')[0].data.fuel - 40) < 0.05 && snap(L, 5).player.carried === 0, JSON.stringify(ev(L, 'refuel'))]],
+  },
+  {
+    id: 'Q4-relight', req: 'An ever_lit lantern relights with 5 motes: lantern_lit relight true, +40, relit_count 1, fuel 100',
+    scenario: { ...off, player: { carried: 7 }, lanterns: [{ id: 'L1', pos: [0, 0, 1], ever_lit: true }] }, inputs: { frames: [{ tick: 0, interact: true }] }, ticks: 5, every: 5,
+    check: (L) => {
+      const l = snap(L, 5).lanterns[0];
+      return [[ev(L, 'deposit')[0]?.data.amount === 5 && ev(L, 'lantern_lit')[0]?.data.relight === true, JSON.stringify(ev(L, 'lantern_lit'))],
+        [l.lit && l.relit_count === 1 && l.fuel >= 99.9 && snap(L, 5).score === 5 * S.per_mote + S.per_relight && snap(L, 5).player.carried === 2, JSON.stringify(l)]];
+    },
+  },
+  {
+    id: 'Q5-capacity-grows', req: 'Capacity = 10 + 2 x successful lights (relights count, scenario pre-lit do not), max 20',
+    scenario: { ...off, player: { carried: 10 }, lanterns: [{ id: 'L1', pos: [0, 0, 1] }, { id: 'L2', lit: true }], motes: [[0, 0, 0.3], [0, 0, 0.4], [0, 0, 0.5], [0, 0, 0.6]] },
+    inputs: { frames: [{ tick: 0, interact: true }] }, ticks: 10, every: 10,
+    check: (L) => [[snap(L, 0).player.capacity === 10, 'starts at 10 (pre-lit L2 not counted)'],
+      [snap(L, 10).player.capacity === 12 && snap(L, 10).player.carried === 4, `after 1 light: ${JSON.stringify(snap(L, 10).player)}`]],
+  },
+  {
+    id: 'Q5b-capacity-max', req: 'Capacity never exceeds 20',
+    scenario: { ...off, player: { successful_lights: 9 } }, ticks: 1, every: 1,
+    check: (L) => [[snap(L, 0).player.capacity === 20, `capacity ${snap(L, 0).player.capacity}`]],
+  },
+  {
+    id: 'Q6-shade-drains-weak-lantern', req: 'Wander shade goes to a lit lantern with fuel < 30, drains 5/s within 2 m (state drain), fuel_drain every 60 ticks, then wander when it goes out',
+    scenario: { ...off, lanterns: [{ id: 'L1', lit: true, fuel: 29 }], shades: [{ id: 'S1', pos: [0, 1, 31] }] }, ticks: 400, every: 10,
+    check: (L) => {
+      const d = ev(L, 'fuel_drain'), out = ev(L, 'lantern_out')[0];
+      return [[snap(L, 100).shades[0].state === 'drain', `state at 100: ${snap(L, 100).shades[0].state}`],
+        [d.length >= 2 && d[0].data.shade_id === 'S1' && d[0].data.lantern_id === 'L1' && d[1].tick - d[0].tick === 60, JSON.stringify(d.slice(0, 2))],
+        [d.length >= 2 && Math.abs((d[0].data.fuel - d[1].data.fuel) - 6) < 0.05, 'drain 5/s + burn 1/s = 6 per 60 ticks'],
+        [out && snap(L, Math.ceil((out.tick + 1) / 10) * 10).shades[0].state === 'wander', `out at ${out?.tick}, shade back to wander`]];
+    },
+  },
+  {
+    id: 'Q7-safe-zone-only-at-30', req: 'Fuel exactly 30 still has a safe zone; below 30 shades may enter',
+    scenario: { ...off, player: { pos: [0, 0, 25] }, lanterns: [{ id: 'L1', lit: true, fuel: 30.5 }], shades: [{ id: 'S1', pos: [0, 1, 33], state: 'chase' }] }, ticks: 120, every: 1,
+    check: (L) => {
+      const hit = ev(L, 'player_hit')[0];
+      return [[hd(snap(L, 30).shades[0].pos, [0, 0, 25]) >= 6 - 1e-3 && snap(L, 30).lanterns[0].fuel === 30, 'blocked while fuel >= 30 (tick 30, fuel 30.0)'],
+        [hit && hit.tick > 30, `hit after the zone dropped: ${hit?.tick}`]];
+    },
+  },
+  {
+    id: 'Q8-drain-to-chase-and-pulse-bonus', req: 'Draining shade switches to chase when Mây is within 6 m; pulse on a draining shade scores +15',
+    scenario: { ...off, player: { pos: [0, 0, 22], carried: 3 }, lanterns: [{ id: 'L1', lit: true, fuel: 20 }], shades: [{ id: 'S1', pos: [0, 1, 26.5], state: 'drain', target_lantern_id: 'L1' }] },
+    inputs: { frames: [{ tick: 0, pulse: true }] }, ticks: 10, every: 1,
+    check: (L) => [[ev(L, 'pulse')[0]?.data.stunned_ids[0] === 'S1' && snap(L, 1).score === S.per_stun_drain && snap(L, 1).shades[0].state === 'stunned', `score ${snap(L, 1).score}`]],
+  },
+  {
+    id: 'Q8b-drain-to-chase', req: 'Draining shade switches to chase when Mây comes within 6 m',
+    scenario: { ...off, player: { pos: [0, 0, 21] }, lanterns: [{ id: 'L1', lit: true, fuel: 20 }], shades: [{ id: 'S1', pos: [0, 1, 26.5], state: 'drain', target_lantern_id: 'L1' }] }, ticks: 2, every: 1,
+    check: (L) => [[snap(L, 0).shades[0].state === 'drain' && snap(L, 1).shades[0].state === 'chase', JSON.stringify(snap(L, 1).shades[0])]],
+  },
+  {
+    id: 'Q9-refuel-evicts', req: 'Refuelling to >= 30 pushes draining shades to the 6 m edge within 30 ticks, no damage meanwhile',
+    scenario: { ...off, player: { pos: [0, 0, 23.5], carried: 2 }, lanterns: [{ id: 'L1', lit: true, fuel: 20 }], shades: [{ id: 'S1', pos: [0, 1, 26.5], state: 'drain', target_lantern_id: 'L1' }] },
+    inputs: { frames: [{ tick: 0, interact: true }] }, ticks: 40, every: 1,
+    check: (L) => [[ev(L, 'refuel').length === 1 && ev(L, 'player_hit').length === 0, 'refuelled, no hit'],
+      [hd(snap(L, 31).shades[0].pos, [0, 0, 25]) >= 6 - 1e-3 && snap(L, 31).shades[0].state !== 'drain', JSON.stringify(snap(L, 31).shades[0])]],
+  },
+  {
+    id: 'Q10-dawn-win-score', req: 'Win at dawn with >= 3/5 lit: dawn_survived, +50 + floor(fuel) per lit lantern, +50 per flame, no time bonus',
+    scenario: { ...off, time_left_s: 1, lanterns: [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit: true, fuel: 40.5 }] }, ticks: 100,
+    check: (L) => {
+      const expected = (50 + 99) * 2 + (50 + 39) + 3 * 50;
+      return [[ev(L, 'game_over')[0]?.tick === 60 && ev(L, 'game_over')[0].data.result === 'won' && ev(L, 'game_over')[0].data.reason === 'dawn_survived', JSON.stringify(ev(L, 'game_over'))],
+        [end(L).score === expected, `score ${end(L).score} expected ${expected}`]];
+    },
+  },
+  {
+    id: 'Q11-dawn-below-threshold', req: 'Dawn with fewer than ceil(0.6 x total) lit = lost/dawn (Night 2 needs 4/6)',
+    night: 2, scenario: { ...off, time_left_s: 1, lanterns: [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit: true }] }, ticks: 100,
+    check: (L) => [[ev(L, 'game_over')[0]?.data.reason === 'dawn' && end(L).state === 'lost' && end(L).score === 0, JSON.stringify(end(L))]],
+  },
+  {
+    id: 'Q12-no-flames-beats-dawn', req: 'Losing the last flame on the dawn tick is a loss (no_flames), even with enough lanterns lit',
+    scenario: { ...off, time_left_s: 1, player: { flames: 1, invuln_ticks: 60 }, lanterns: [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit: true }], shades: [{ id: 'S1', pos: [0.3, 1, 0], state: 'chase' }] }, ticks: 100,
+    check: (L) => [[ev(L, 'game_over')[0]?.tick === 60 && ev(L, 'game_over')[0].data.reason === 'no_flames', JSON.stringify(ev(L, 'game_over'))]],
   },
 ];

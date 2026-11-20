@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 3 --ticks 60 --out docs\proof\phase-3\scenarios\P18-nights-2-3-setup\output.jsonl --snapshot-every 60 --scenario docs\proof\phase-3\scenarios\P18-nights-2-3-setup\scenario.json

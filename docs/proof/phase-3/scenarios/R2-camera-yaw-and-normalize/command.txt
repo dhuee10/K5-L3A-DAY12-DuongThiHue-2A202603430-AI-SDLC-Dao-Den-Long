@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 120 --out docs\proof\phase-3\scenarios\R2-camera-yaw-and-normalize\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-3\scenarios\R2-camera-yaw-and-normalize\scenario.json --inputs docs\proof\phase-3\scenarios\R2-camera-yaw-and-normalize\inputs.json
