@@ -1,5 +1,19 @@
 # Changelog
 
+## [v1.0.0 / phase-4] Contract v1.3: "Bình minh"
+
+### Added
+- **Benchmark** `node tools/bench.mjs --seed 42 --duration 30 --out bench.json`: real 1280×720 Chrome window, vsync off, standard scene (200 wander shades, 100 motes, L1–L3 lit, spawn/damage/pickup/burn/end disabled), 3 s warm-up, ticket formulas for avg / p1-low / p95, load time, peak browser RSS.
+- **Soak test** `node --expose-gc --jitless --max-semi-space-size=1 tools/soak.mjs --seed 7 --nights 10 --out soak.json`.
+- **Local leaderboard** stored on disk (`data/leaderboard.json`) by the game server; name entry after Bình Minh or a loss (Vietnamese names accepted); menu screen; `node tools/serve.mjs --export-leaderboard out.json`.
+- **Accessibility:** remap every action with duplicate detection and restore defaults; captions + edge arrow for shade spawns, wind warning, last 10 s and low fuel; reduced motion (no camera shake or screen flash); UI text ≥ 18 px; large-text option ×1.25.
+- three.js r160 vendored (offline play, faster load); release package; retro.
+
+### Changed
+- `game.contract.json` → v1.3 with `bench_cmd`, `soak_cmd`; **`run_cmd` is now `node tools/serve.mjs`** (was `npm start`) so `--export-leaderboard` can be appended to it.
+- **Default pause key is now Esc only** (P removed; any key can be bound to pause in Settings).
+- Headless output is unchanged from phase-3 (proof JSONL byte-identical).
+
 ## [phase-3] Contract v1.2: "Đèn cạn dầu"
 
 ### Breaking changes

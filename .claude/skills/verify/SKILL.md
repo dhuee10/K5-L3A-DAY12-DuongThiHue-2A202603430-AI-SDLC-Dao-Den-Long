@@ -16,3 +16,4 @@ description: Run and record evidence for Đảo Đèn Lồng (tests, headless sc
    `chrome --headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1280,720 --virtual-time-budget=6000 --screenshot=<png> "http://localhost:8099/?showcase&night=N"`.
    Screenshots use virtual time, so they never prove that the game ticks; use step 5 for that.
 7. Update the evidence table in `docs/notes/phase-<N>.md`: requirement, method, link, result. Anything without real proof is "chưa đạt" or "by inspection only".
+8. Release-level checks (Phase 4+): `node tools/bench.mjs --seed 42 --duration 30 --out docs/proof/phase-<N>/bench.json` (needs a desktop session; record CPU/GPU) and the soak command from `game.contract.json`. Commit both JSON files. If a threshold is borderline, measure why (e.g. heap vs RSS) before changing anything, and commit the failing run too.
