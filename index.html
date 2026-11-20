@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đảo Đèn Lồng</title>
+<style>
+  :root { --warm: #ffb347; --warm2: #ffd88a; --ink: #2a1840; --violet: #8a5cc2; --text: #fff4e0; }
+  html, body { margin: 0; height: 100%; background: #0b0716; color: var(--text); font-family: system-ui, "Segoe UI", sans-serif; overflow: hidden; }
+  canvas { display: block; }
+  #hud { position: fixed; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; pointer-events: none; text-shadow: 0 1px 3px #000; }
+  .row { background: rgba(20, 10, 35, .55); border: 1px solid rgba(255, 179, 71, .25); border-radius: 8px; padding: 4px 10px; }
+  .row b { color: var(--warm2); }
+  #flames span { color: var(--warm); font-size: 18px; }
+  #flames span.out { color: #4a3a5e; }
+  #hint { position: fixed; bottom: 18%; width: 100%; text-align: center; font-size: 18px; color: var(--warm2); text-shadow: 0 1px 4px #000; pointer-events: none; }
+  #help { position: fixed; bottom: 10px; right: 12px; font-size: 12px; opacity: .7; text-align: right; pointer-events: none; }
+  .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(8, 4, 18, .72); }
+  .card { max-width: 520px; margin: 16px; padding: 24px 28px; background: #1a1030; border: 1px solid rgba(255, 179, 71, .4); border-radius: 14px; box-shadow: 0 0 60px rgba(255, 160, 60, .15); line-height: 1.5; }
+  .card h1 { margin: 0 0 8px; color: var(--warm); font-size: 28px; }
+  .card button { margin-top: 14px; padding: 10px 22px; font-size: 16px; border: 0; border-radius: 8px; background: var(--warm); color: #2a1400; cursor: pointer; font-weight: 600; }
+  .card kbd { background: #2d1f47; padding: 1px 6px; border-radius: 4px; border: 1px solid #4b3a6a; }
+  .hidden { display: none !important; }
+</style>
+<script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="hud" class="hidden">
+  <div class="row" id="flames"></div>
+  <div class="row">Đom đóm: <b id="carried">0</b> / <span id="cap"></span></div>
+  <div class="row">Đèn: <b id="lit">0</b> / <span id="lcount"></span></div>
+  <div class="row">Điểm: <b id="score">0</b></div>
+  <div class="row">Trời sáng sau: <b id="time"></b></div>
+  <div class="row">Tỏa sáng: <b id="pulse"></b></div>
+</div>
+<div id="hint"></div>
+<div id="help" class="hidden">WASD đi · Space nhảy · E nạp đèn · F tỏa sáng · ←/→ hoặc kéo chuột xoay camera · M tắt tiếng</div>
+
+<div id="start" class="overlay"><div class="card">
+  <h1>Đảo Đèn Lồng</h1>
+  <p><i>Đêm 1: Đảo Bến.</i> Sương đen đã nuốt hết ánh sáng của đảo. Mây, người giữ đèn nhỏ tuổi, phải gom những đốm đom đóm rồi mang về thắp lại <b>5 Đèn Lồng Lớn</b> trước khi trời sáng.</p>
+  <p>Coi chừng <b style="color:#b48ae6">Bóng Mực</b>: chạm vào là mất một ngọn lửa. Tỏa sáng để xua chúng đi (tốn 1 đom đóm). Chúng không dám lại gần đèn đã thắp.</p>
+  <p><kbd>W A S D</kbd> đi · <kbd>Space</kbd> nhảy · <kbd>E</kbd> nạp đèn · <kbd>F</kbd> tỏa sáng · <kbd>←</kbd><kbd>→</kbd> / kéo chuột: xoay camera</p>
+  <button id="play">Bắt đầu</button>
+</div></div>
+
+<div id="end" class="overlay hidden"><div class="card">
+  <h1 id="endTitle"></h1>
+  <p id="endText"></p>
+  <button id="again">Chơi lại (R)</button>
+</div></div>
+
+<script type="module" src="src/game.js"></script>
+</body>
+</html>
