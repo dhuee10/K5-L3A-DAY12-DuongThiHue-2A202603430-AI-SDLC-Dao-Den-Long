@@ -48,11 +48,16 @@ await ev(`(()=>{const v=document.getElementById('vol'); v.value=33; v.dispatchEv
 await nav(`${base}/`);
 const saved = await ev(`[document.getElementById('vol').value, document.getElementById('sens').value]`);
 ok('Settings (volume, mouse sensitivity) saved between sessions', saved[0] === '33' && saved[1] === '150', { saved });
+await ev(`(()=>{const c=document.getElementById('cb'); c.checked=true; c.dispatchEvent(new Event('change'));})()`);
+await nav(`${base}/`);
+ok('Colour-blind palette setting saved and applied', (await ev(`document.getElementById('cb').checked && document.body.classList.contains('cb')`)) === true, {});
+await ev(`(()=>{const c=document.getElementById('cb'); c.checked=false; c.dispatchEvent(new Event('change'));})()`);
 
 // 4. full flow: menu -> intro -> play -> win -> next night ... -> dawn; lose -> replay same night
 await ev(`document.getElementById('btnStart').click()`); await sleep(300);
 ok('Menu -> Night 1 intro with Ông Đăng', (await ev('__mode()')) === 'intro' && /Ông Đăng/.test(await ev(`document.getElementById('introQuote').textContent`)), { name: await ev(`document.getElementById('introName').textContent`) });
-const winNight = `(()=>{const g=__game(); const ls=g.lanterns; ls.forEach((l,i)=>{ if(i<ls.length-1) l.lit=true; }); const l=ls.at(-1); g.player.pos=[l.pos[0]+1,l.pos[1],l.pos[2]]; g.player.grounded=true; g.player.carried=10; g.shades.length=0; })()`;
+// Phase 3 win rule: survive to dawn with >= 60 % lit. Light every lantern (full fuel) and fast-forward the clock to 0.5 s before dawn.
+const winNight = `(()=>{const g=__game(); g.lanterns.forEach((l)=>{ l.lit=true; l.everLit=true; l.fuel=6000; }); g.shades.length=0; g.baseTime = g.simTick/60 + 0.5; })()`;
 for (const n of [1, 2, 3]) {
   await ev(`document.getElementById('btnGo').click()`); await sleep(400);
   ok(`Night ${n} starts`, (await ev('__game().night')) === n && (await ev('__mode()')) === 'play', {});

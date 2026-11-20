@@ -61,9 +61,9 @@ Machine: Intel(R) Core(TM) Ultra 5 125H, win32 10.0.26200, Node v26.13.1.
 
 | Run | sha256 (16) | Exit | Time |
 |---|---|---|---|
-| seed 7, run 1 | fa08b9e3ad2c5b9c | 0 | 353 ms |
-| seed 7, run 2 | fa08b9e3ad2c5b9c | 0 | 351 ms |
-| seed 8 | 0ee489346ab0ba01 | 0 | 285 ms |
+| seed 7, run 1 | fa08b9e3ad2c5b9c | 0 | 356 ms |
+| seed 7, run 2 | fa08b9e3ad2c5b9c | 0 | 345 ms |
+| seed 8 | 0ee489346ab0ba01 | 0 | 293 ms |
 
 Result: **PASS** (same seed identical, different seed differs). End line of seed 7 (Mây waits at lit L1, 999 flames): `{"type":"end","ticks":18000,"state":"lost","score":0}`
 
