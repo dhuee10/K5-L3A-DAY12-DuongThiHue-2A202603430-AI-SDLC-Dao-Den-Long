@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 3900 --out docs\proof\phase-1\scenarios\R16-random-spawn\output.jsonl --snapshot-every 60 --scenario docs\proof\phase-1\scenarios\R16-random-spawn\scenario.json

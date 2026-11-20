@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 5 --out docs\proof\phase-1\scenarios\R7-partial-deposit-out-of-range\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-1\scenarios\R7-partial-deposit-out-of-range\scenario.json --inputs docs\proof\phase-1\scenarios\R7-partial-deposit-out-of-range\inputs.json
