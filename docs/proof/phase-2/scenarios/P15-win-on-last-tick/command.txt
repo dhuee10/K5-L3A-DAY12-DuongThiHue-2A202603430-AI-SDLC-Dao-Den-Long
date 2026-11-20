@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 100 --out docs\proof\phase-2\scenarios\P15-win-on-last-tick\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-2\scenarios\P15-win-on-last-tick\scenario.json --inputs docs\proof\phase-2\scenarios\P15-win-on-last-tick\inputs.json

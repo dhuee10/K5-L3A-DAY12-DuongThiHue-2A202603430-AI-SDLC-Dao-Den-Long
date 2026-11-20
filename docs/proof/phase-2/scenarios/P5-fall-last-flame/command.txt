@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 300 --out docs\proof\phase-2\scenarios\P5-fall-last-flame\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-2\scenarios\P5-fall-last-flame\scenario.json --inputs docs\proof\phase-2\scenarios\P5-fall-last-flame\inputs.json

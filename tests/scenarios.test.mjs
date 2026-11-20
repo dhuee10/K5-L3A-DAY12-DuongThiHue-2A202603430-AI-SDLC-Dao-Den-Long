@@ -11,6 +11,7 @@ import { SCENARIOS } from './scenarios.mjs';
 export function runScenario(sc, seed = 1) {
   const text = run({
     seed,
+    night: sc.night ?? 1,
     scenario: sc.scenario ? validateScenario(structuredClone(sc.scenario)) : null,
     frames: sc.inputs ? validateInputs(structuredClone(sc.inputs)) : [],
     ticks: sc.ticks,
@@ -31,6 +32,10 @@ test('output format: first line snapshot tick 0, last line end, every snapshot o
   assert.equal(lines[0].type, 'snapshot');
   assert.equal(lines[0].tick, 0);
   assert.equal(lines[0].time_left_s, TUNING.night1_duration_s);
+  assert.equal(lines[0].night, 1);
+  assert.deepEqual(lines[1], { type: 'event', tick: 0, name: 'night_start', data: { night: 1 } });
+  for (const k of ['vel', 'grounded', 'invuln', 'dash_cd_s', 'pulse_cd_s', 'charm_s']) assert.ok(k in lines[0].player, k);
+  for (const k of ['motes', 'drifters', 'charms', 'wind']) assert.ok(k in lines[0], k);
   assert.deepEqual(lines[0].player.pos, [0, 0, 0]);
   const last = lines.at(-1);
   assert.equal(last.type, 'end');
@@ -53,7 +58,7 @@ test('determinism: same seed gives identical output, different seed differs', ()
 
 test('game.contract.json tuning matches the numbers the game uses', () => {
   const c = JSON.parse(readFileSync(new URL('../game.contract.json', import.meta.url), 'utf8'));
-  assert.equal(c.contract_version, '1.0');
+  assert.equal(c.contract_version, '1.1');
   assert.deepEqual(c.tuning, JSON.parse(JSON.stringify(TUNING)));
 });
 
@@ -83,6 +88,21 @@ test('CLI: malformed inputs / scenario exit 2 with stderr', () => {
   }
   writeFileSync(join(dir, 'sc.json'), JSON.stringify({ motes: [[1, 2]] }));
   assert.equal(cli([...base, '--scenario', join(dir, 'sc.json')]).status, 2);
+});
+
+test('CLI: nights 2 and 3 run; full night of 21600 ticks well under 30 s', () => {
+  for (const n of ['2', '3']) assert.equal(cli(['--seed', '1', '--night', n, '--ticks', '30', '--out', join(dir, 'n.jsonl')]).status, 0);
+  const t = performance.now();
+  const r = cli(['--seed', '5', '--night', '3', '--ticks', '21600', '--out', join(dir, 'full.jsonl')]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(performance.now() - t < 30000);
+});
+
+test('CLI: bad v1.1 scenario fields exit 2', () => {
+  for (const [name, sc] of Object.entries({ st: { shades: [{ pos: [1, 1, 1], state: 'angry' }] }, dr: { drifters: [{ pos: [1, 2] }] }, ch: { charms: [{ available: 'yes' }] }, wi: { wind_enabled: 1 } })) {
+    writeFileSync(join(dir, name + '.json'), JSON.stringify(sc));
+    assert.equal(cli([...base, '--scenario', join(dir, name + '.json')]).status, 2, name);
+  }
 });
 
 test('CLI: missing required args / unknown night exit non-zero', () => {

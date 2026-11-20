@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 3 --ticks 2110 --out docs\proof\phase-2\scenarios\P17-night3-wind\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-2\scenarios\P17-night3-wind\scenario.json

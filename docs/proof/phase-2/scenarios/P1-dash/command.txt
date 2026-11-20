@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 110 --out docs\proof\phase-2\scenarios\P1-dash\output.jsonl --snapshot-every 1 --scenario docs\proof\phase-2\scenarios\P1-dash\scenario.json --inputs docs\proof\phase-2\scenarios\P1-dash\inputs.json

@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 2 --ticks 100 --out docs\proof\phase-2\scenarios\P6-jump-pad-night2\output.jsonl --snapshot-every 1 --scenario docs\proof\phase-2\scenarios\P6-jump-pad-night2\scenario.json --inputs docs\proof\phase-2\scenarios\P6-jump-pad-night2\inputs.json

@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 5 --out docs\proof\phase-2\scenarios\R10-pulse-needs-light\output.jsonl --snapshot-every 5 --scenario docs\proof\phase-2\scenarios\R10-pulse-needs-light\scenario.json --inputs docs\proof\phase-2\scenarios\R10-pulse-needs-light\inputs.json

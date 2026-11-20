@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 1 --ticks 100 --out docs\proof\phase-2\scenarios\R8-win-all-lit\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-2\scenarios\R8-win-all-lit\scenario.json --inputs docs\proof\phase-2\scenarios\R8-win-all-lit\inputs.json

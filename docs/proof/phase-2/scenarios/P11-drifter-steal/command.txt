@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 2 --ticks 300 --out docs\proof\phase-2\scenarios\P11-drifter-steal\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-2\scenarios\P11-drifter-steal\scenario.json

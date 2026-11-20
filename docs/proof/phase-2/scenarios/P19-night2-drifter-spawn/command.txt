@@ -1,0 +1,1 @@
+node src/headless.mjs --seed 1 --night 2 --ticks 1210 --out docs\proof\phase-2\scenarios\P19-night2-drifter-spawn\output.jsonl --snapshot-every 10 --scenario docs\proof\phase-2\scenarios\P19-night2-drifter-spawn\scenario.json
