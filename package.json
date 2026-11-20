@@ -1,15 +1,19 @@
 {
   "name": "dao-den-long",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Đảo Đèn Lồng: 3D lantern-lighting game (Day 12 AI SDLC lab)",
   "type": "module",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node tools/serve.mjs",
     "test": "node --test tests/",
     "headless": "node src/headless.mjs",
-    "proof": "node tools/proof.mjs"
+    "proof": "node tools/proof.mjs",
+    "bench": "node tools/bench.mjs --seed 42 --duration 30 --out bench.json",
+    "soak": "node --expose-gc --jitless --max-semi-space-size=1 tools/soak.mjs --seed 7 --nights 10 --out soak.json"
   },
   "license": "MIT"
 }

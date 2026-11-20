@@ -59,7 +59,8 @@ test('determinism: same seed gives identical output, different seed differs', ()
 
 test('game.contract.json tuning matches the numbers the game uses', () => {
   const c = JSON.parse(readFileSync(new URL('../game.contract.json', import.meta.url), 'utf8'));
-  assert.equal(c.contract_version, '1.2');
+  assert.equal(c.contract_version, '1.3');
+  for (const k of ['bench_cmd', 'soak_cmd', 'run_cmd', 'headless_cmd', 'build_cmd']) assert.ok(c[k], k);
   assert.deepEqual(c.tuning, JSON.parse(JSON.stringify(TUNING)));
 });
 
