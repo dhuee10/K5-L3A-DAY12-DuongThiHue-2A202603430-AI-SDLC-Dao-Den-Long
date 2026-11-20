@@ -8,7 +8,7 @@ const ring = (n, r, startDeg, stepDeg, y = 0, cx = 0, cz = 0) =>
 const lanterns = (list) => list.map((pos, i) => ({ id: `L${i + 1}`, pos }));
 
 const N1 = {
-  night: 1, name: 'Đảo Bến', duration_s: 300, start: [0, 0, 0],
+  night: 1, name: 'Đảo Bến', duration_s: 240, start: [0, 0, 0],
   shade_speed: 4.0, shade_interval_ticks: 480, shade_max: 6,
   lanterns: lanterns([[0, 0, 25], [23.8, 0, 7.7], [14.7, 0, -20.2], [-14.7, 0, -20.2], [-23.8, 0, 7.7]]),
   motePoints: [...ring(8, 12, 0, 45), ...ring(16, 33, 0, 22.5)],
@@ -18,7 +18,7 @@ const N1 = {
 };
 
 const N2 = {
-  night: 2, name: 'Đảo Cau', duration_s: 330, start: [0, 0, 0],
+  night: 2, name: 'Đảo Cau', duration_s: 270, start: [0, 0, 0],
   shade_speed: 4.0, shade_interval_ticks: 420, shade_max: 8,
   lanterns: lanterns([[0, 0, 20], [17, 0, -10], [-17, 0, -10], [70, 0, 20], [87, 0, -10], [53, 0, -10]]),
   motePoints: [
@@ -37,7 +37,7 @@ const N2 = {
 };
 
 const N3 = {
-  night: 3, name: 'Đảo Chuông', duration_s: 360,
+  night: 3, name: 'Đảo Chuông', duration_s: 300,
   start: [0, 0, -30], // ticket gives no Night 3 start; (0,0,0) is inside the bell tower. See phase-2 notes A-P2-3
   shade_speed: 4.5, shade_interval_ticks: 360, shade_max: 10,
   lanterns: lanterns([[0, 6, 6], [18, 3, 10], [-18, 3, 10], [35, 0, -10], [-35, 0, -10], [20, 0, -35], [-20, 0, -35]]),
