@@ -106,7 +106,7 @@ export function createGame({ seed = 0, night = 1, scenario = null } = {}) {
   if (!map) throw new Error(`unknown night ${night}`);
   const sc = scenario || {};
   const g = {
-    map, night, rng: makeRng(seed),
+    map, night, rng: makeRng(seed), bench: false,
     tick: 0, simTick: 0, paused: false,
     state: 'playing', result: null, score: 0,
     baseTime: sc.time_left_s ?? map.duration_s,
@@ -252,7 +252,7 @@ export function step(g, input) {
   g.motes = g.motes.filter((m) => m.ttl == null || --m.ttl > 0);
   for (const c of g.charms) if (!c.available && c.respawn > 0 && --c.respawn === 0) c.available = true;
   // 2b. fuel: burn 1/60 per tick for every lit lantern, then drain 5/60 per tick per draining shade
-  for (const l of g.lanterns) if (l.lit) l.fuel -= BURN;
+  for (const l of g.lanterns) if (l.lit && !g.bench) l.fuel -= BURN;
   for (const s of g.shades) {
     if (s.state !== 'drain') continue;
     const l = g.lanterns.find((x) => x.id === s.target);
@@ -268,8 +268,8 @@ export function step(g, input) {
   // 3. move Mây
   movePlayer(g, input, pressed, dt);
 
-  // 4. pick up motes + charms
-  if (targetable(g)) {
+  // 4. pick up motes + charms (off in the benchmark scene)
+  if (targetable(g) && !g.bench) {
     const keep = [];
     for (const m of g.motes) {
       if (p.carried < capacityOf(p) && hd(p.pos, m.pos) <= TUNING.pickup_radius && Math.abs(p.pos[1] - m.pos[1]) <= RULES.pickup_dy) {
@@ -371,8 +371,8 @@ export function step(g, input) {
   moveShades(g, dt);
   moveDrifters(g, dt);
 
-  // 9. contact: drifters steal first, then shades hit (ascending id, max one flame per tick)
-  if (targetable(g)) {
+  // 9. contact: drifters steal first, then shades hit (ascending id, max one flame per tick); off in bench
+  if (targetable(g) && !g.bench) {
     for (const d of [...g.drifters].sort(byId)) {
       if ((d.state !== 'idle' && d.state !== 'chase') || p.carried <= 0) continue;
       if (hd(p.pos, d.pos) <= RULES.drifter_touch) {
@@ -420,7 +420,8 @@ export function step(g, input) {
     g.wind = { active: RULES.wind_ticks, dir: Math.floor(g.rng() * 360) };
   }
 
-  // 11. win / lose
+  // 11. win / lose (the benchmark scene never ends)
+  if (g.bench) return g.events;
   if (p.flames <= 0) { p.flames = 0; endGame(g, 'lost', 'no_flames'); }
   else if (timeLeft(g) <= 1e-9) {
     const lit = g.lanterns.filter((l) => l.lit).length;
@@ -552,7 +553,7 @@ function moveShades(g, dt) {
     }
     let dx = 0, dz = 0;
     const d = hd(s.pos, p.pos);
-    if (s.state === 'wander' && targetable(g) && d <= RULES.shade_detect) s.state = 'chase';
+    if (s.state === 'wander' && !g.bench && targetable(g) && d <= RULES.shade_detect) s.state = 'chase';
     else if (s.state === 'chase' && (!targetable(g) || d > RULES.shade_giveup)) s.state = 'wander';
     else if (s.state === 'drain') {
       const l = g.lanterns.find((x) => x.id === s.target);
@@ -665,4 +666,20 @@ export function snapshot(g) {
     motes_active: g.motes.length,
     motes: g.motes.map((m) => ({ id: m.id, pos: v3(m.pos), kind: m.kind, ttl_s: m.ttl == null ? null : round3(m.ttl / TICK_RATE) })),
   };
+}
+
+// ---------------------------------------------------------------- benchmark scene (TICKET-04 §1)
+// Night 1, 200 wander shades spread evenly over the island, 100 motes, L1-L3 lit at fuel 100.
+// Spawning, damage, pickup, fuel burn and end-of-night are disabled; shades keep normal wander movement.
+export const BENCH = Object.freeze({ shades: 200, motes: 100, lit: ['L1', 'L2', 'L3'] });
+export function createBenchGame(seed = 42) {
+  const g = createGame({ seed, night: 1, scenario: { random_motes: false, random_shades: false, random_drifters: false, wind_enabled: false, motes: [], shades: [], drifters: [], charms: [] } });
+  g.bench = true;
+  const rng = makeRng(seed);
+  const R = g.map.islands[0].r - 1;
+  const spot = () => { const a = rng() * Math.PI * 2, r = R * Math.sqrt(rng()); return [r * Math.cos(a), 0, r * Math.sin(a)]; }; // uniform over the disc
+  for (let i = 0; i < BENCH.shades; i++) { const p = spot(); addShade(g, [p[0], RULES.shade_hover, p[2]], null, 'wander', 0, false); }
+  for (let i = 0; i < BENCH.motes; i++) addMote(g, spot(), 'random', null);
+  for (const l of g.lanterns) if (BENCH.lit.includes(l.id)) { l.lit = true; l.everLit = true; l.fuel = FUEL_MAX; }
+  return g;
 }
